@@ -29,7 +29,8 @@
         .status-bekliyor { background: #f1c40f; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; }
         .hidden { display: none !important; }
     </style>
-</head><body id="mainBody">
+</head>
+<body id="mainBody">
     <div id="authOverlay">
         <div class="auth-box">
             <h2 id="authTitle">👋 Hoş Geldiniz</h2>
@@ -71,7 +72,8 @@
                     <button class="buy-btn" id="btn-insta" onclick="addToCart('Instagram', 50, 'insta')" disabled>Sepete Ekle</button>
                 </div>
             </div>
-        </div><div id="packages-extra" class="section active"> <div class="packages-grid" style="margin-top:20px">
+        </div>
+        <div id="packages-extra" class="section active"> <div class="packages-grid" style="margin-top:20px">
                 <div class="package-card">
                     <div><h2>Einstein</h2><h3 style="color:#e74c3c">80 ₺</h3><p>25 Fotoğraf</p></div>
                     <input type="file" id="files-ein" multiple accept="image/*" onchange="validatePhotos('ein', 25)" class="hidden">
@@ -111,7 +113,8 @@
                 <div id="adminOrders"></div>
             </div>
         </div>
-    </div><script>
+    </div>
+    <script>
     let currentUser = null;
     let credits = 0; let cart = []; let orders = []; let tempFiles = {};
     let secretCounter = 0;
@@ -170,7 +173,8 @@
         btn.classList.add('active');
         if(id === 'admin') renderAdmin();
     }
-</script><script>
+</script>
+<script>
     function validatePhotos(pkg, count) {
         const input = document.getElementById(`files-${pkg}`);
         const btn = document.getElementById(`btn-${pkg}`);
