@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📸 Fotoğraf Baskı - Sipariş Sistemi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; color: white; padding: 20px; }
+        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .nav-btn { padding: 12px 24px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; background: white; color: #667eea; transition: 0.3s; }
+        .nav-btn.active { background: #ffd700; color: #333; }
+        .section { display: none; animation: fadeIn 0.5s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .packages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .package-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .upload-box { margin: 15px 0; padding: 10px; border: 2px dashed #667eea; border-radius: 10px; }
+        .admin-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .order-row { border-bottom: 2px solid #eee; padding: 15px 0; }
+        .photo-preview { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+        .photo-preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
+        .hidden { display: none !important; }
+        .buy-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .download-btn { background: #3498db; color: white; padding: 10px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📸 Okul Fotoğraf Servisi</h1>
+            <div style="background:white; display:inline-block; padding:10px 20px; border-radius:20px; margin-top:10px; font-weight:bold">
+                💰 Krediniz: <span id="userCredits">0</span> ₺
+            </div>
+              </header>
+                      <div class="nav-tabs">
+            <button class="nav-btn active" onclick="showSection('packages', this)">📦 Paketler</button>
+            <button class="nav-btn" onclick="showSection('cart', this)">🛒 Sepet (<span id="cartCount">0</span>)</button>
+            <button class="nav-btn" onclick="showSection('admin', this)">👑 Admin</button>
+        </div>
+
+        <div id="packages" class="section active">
+            <div class="packages-grid">
+                <div class="package-card">
+                    <div style="font-size:3em">😂</div>
+                    <h2>Fakirno Paketi</h2>
+                    <p>3 Fotoğraf + 1 Bedava</p>
+                    <h3 style="color:#e74c3c">15 ₺</h3>
+                    <div class="upload-box">
+                        <input type="file" id="files-fakirno" multiple accept="image/*" onchange="validatePhotos('fakirno', 4)" class="hidden">
+                        <button class="nav-btn" style="border:1px solid #667eea" onclick="document.getElementById('files-fakirno').click()">🖼️ 4 Fotoğraf Seç</button>
+                        <p id="label-fakirno" style="font-size:0.8em; margin-top:5px">Henüz seçilmedi</p>
+                    </div>
+                    <button class="buy-btn" id="btn-fakirno" onclick="addToCart('Fakirno', 15, 'fakirno')" disabled>Sepete Ekle</button>
+                </div>
+
+                <div class="package-card">
+                    <div style="font-size:3em">📱</div>
+                    <h2>Instagram Paketi</h2>
+                    <p>12 Fotoğraf + 2 Bedava</p>
+                    <h3 style="color:#e74c3c">50 ₺</h3>
+                    <div class="upload-box">
+                        <input type="file" id="files-insta" multiple accept="image/*" onchange="validatePhotos('insta', 14)" class="hidden">
+                        <button class="nav-btn" style="border:1px solid #667eea" onclick="document.getElementById('files-insta').click()">🖼️ 14 Fotoğraf Seç</button>
+                        <p id="label-insta" style="font-size:0.8em; margin-top:5px">Henüz seçilmedi</p>
+                    </div>
+                    <button class="buy-btn" id="btn-insta" onclick="addToCart('Instagram', 50, 'insta')" disabled>Sepete Ekle</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="cart" class="section">
+            <div class="admin-card">
+                <h2>Sepetiniz</h2>
+                <div id="cartList"></div>
+                <hr style="margin:15px 0">
+                <div style="font-size:1.5em; font-weight:bold; text-align:center">Toplam: <span id="totalPrice">0</span> ₺</div>
+                <button class="buy-btn" id="checkoutBtn" onclick="processOrder()" disabled>Siparişi Tamamla</button>
+            </div>
+        </div>
+
+        <div id="admin" class="section">
+            <div id="adminAuth" class="admin-card" style="text-align:center">
+                <h3>Yönetici Girişi</h3>
+                <input type="password" id="adminPass" placeholder="Şifre" style="padding:10px; margin:10px; border-radius:5px; border:1px solid #ccc">
+                <button class="nav-btn" style="background:#667eea; color:white" onclick="adminLogin()">Giriş Yap</button>
+            </div>
+            <div id="adminPanel" class="hidden">
+                <div class="admin-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <h2>Gelen Siparişler</h2>
+                        <button class="download-btn" onclick="downloadOrderLog()">📁 Kayıtları İndir (.txt)</button>
+                    </div>
+                    <div id="adminOrders" style="margin-top:20px"></div>
+                </div>
+            </div>
+        </div>
+  </div>
+      <script>
+        let cart = []; let orders = []; let tempFiles = {};
+        function showSection(id, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(id === 'admin' && !document.getElementById('adminPanel').classList.contains('hidden')) renderAdminOrders();
+        }
+        function validatePhotos(pkg, count) {
+            const input = document.getElementById(`files-${pkg}`);
+            const label = document.getElementById(`label-${pkg}`);
+            const btn = document.getElementById(`btn-${pkg}`);
+            if(input.files.length === count) {
+                label.innerText = "✅ " + count + " Fotoğraf hazır!"; label.style.color = "green";
+                btn.disabled = false; tempFiles[pkg] = Array.from(input.files);
+            } else { alert("Hata: Tam olarak " + count + " fotoğraf gerekli."); btn.disabled = true; }
+        }
+        function addToCart(name, price, pkgKey) {
+            cart.push({ name, price, photos: tempFiles[pkgKey], timestamp: new Date().toLocaleString() });
+            updateCart(); alert(name + " sepete eklendi!");
+            document.getElementById(`btn-${pkgKey}`).disabled = true;
+            document.getElementById(`label-${pkgKey}`).innerText = "Henüz seçilmedi";
+        }
+        function updateCart() {
+            const list = document.getElementById('cartList');
+            list.innerHTML = cart.map(item => `<div style="padding:10px; border-bottom:1px solid #eee"><b>${item.name}</b> - ${item.price} ₺</div>`).join('');
+            document.getElementById('cartCount').innerText = cart.length;
+            const total = cart.reduce((sum, i) => sum + i.price, 0);
+            document.getElementById('totalPrice').innerText = total;
+            document.getElementById('checkoutBtn').disabled = cart.length === 0;
+        }
+        function processOrder() {
+            orders.push({ id: Date.now(), items: [...cart], time: new Date().toLocaleString() });
+            cart = []; updateCart(); alert("Sipariş Başarılı!");
+        }
+        function adminLogin() {
+            if(document.getElementById('adminPass').value === "ThePassMustiGithub") {
+                document.getElementById('adminAuth').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                renderAdminOrders();
+            } else { alert("Hatalı Şifre!"); }
+        }
+        function renderAdminOrders() {
+            const container = document.getElementById('adminOrders');
+            if(orders.length === 0) { container.innerHTML = "<p>Sipariş yok.</p>"; return; }
+            container.innerHTML = orders.map(order => `
+                <div class="order-row">
+                    <p style="background:#f8f9fa; padding:5px">🕒 <b>Zaman:</b> ${order.time}</p>
+                    ${order.items.map(item => `
+                        <div style="margin-top:10px">
+                            <p><b>Paket:</b> ${item.name} (${item.photos.length} Fotoğraf)</p>
+                            <div class="photo-preview">
+                                ${item.photos.map(file => `<img src="${URL.createObjectURL(file)}" title="Büyütmek için tıkla" onclick="window.open(this.src)">`).join('')}
+                            </div>
+                        </div>`).join('')}
+                </div>`).join('');
+        }
+        function downloadOrderLog() {
+            if(orders.length === 0) return;
+            let text = "SİPARİŞ KAYITLARI\n================\n\n";
+            orders.forEach(o => {
+                text += `ZAMAN: ${o.time}\n`;
+                o.items.forEach(i => text += `- ${i.name}: ${i.price} TL\n`);
+                text += "----------------\n";
+            });
+            const blob = new Blob([text], { type: 'text/plain' });
+            const anchor = document.createElement('a');
+            anchor.download = `siparisler.txt`; anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+        }
+    </script>
+</body>
+</html>
