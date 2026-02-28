@@ -173,3 +173,200 @@
     </script>
 </body>
 </html>
+        <div id="cart" class="section">
+            <div class="admin-card">
+                <h2 style="text-align: center; margin-bottom: 20px;">🛒 Sepetiniz</h2>
+                <div id="cartList"></div>
+                <hr style="margin:20px 0; border: 1px solid #eee;">
+                <div style="font-size:1.8em; font-weight:bold; text-align:center; color: #2c3e50;">
+                    Toplam: <span id="totalPrice">0</span> ₺
+                </div>
+                <button class="buy-btn" id="checkoutBtn" onclick="processOrder()" disabled style="height: 60px; font-size: 1.4em; margin-top: 20px;">
+                    Siparişi Tamamla
+                </button>
+            </div>
+        </div>
+
+        <div id="admin" class="section">
+            <div id="adminAuth" class="admin-card" style="text-align:center; max-width: 400px; margin: 0 auto;">
+                <h3 style="margin-bottom: 15px;">Yönetici Girişi</h3>
+                <input type="password" id="adminPass" placeholder="Şifre" style="padding:12px; width: 100%; margin-bottom:15px; border-radius:10px; border:1px solid #ccc; font-size: 1.1em;">
+                <button class="nav-btn" style="background:#667eea; color:white; width: 100%;" onclick="adminLogin()">Giriş Yap</button>
+            </div>
+            
+            <div id="adminPanel" class="hidden">
+                <div class="admin-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+                        <h2>👑 Gelen Siparişler</h2>
+                        <button class="download-btn" onclick="downloadOrderLog()">📁 Kayıtları İndir (.txt)</button>
+                    </div>
+                    <div id="adminOrders" style="margin-top:20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DEĞİŞKENLER
+        let credits = 0;
+        let cart = [];
+        let orders = [];
+        let tempFiles = {};
+
+        // SAYFA SEKME SİSTEMİ
+        function showSection(id, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            // Eğer buton objesi gönderildiyse (nav-tabs içinden)
+            if(btn && btn.classList) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            
+            if(id === 'admin' && !document.getElementById('adminPanel').classList.contains('hidden')) {
+                renderAdminOrders();
+            }
+        }
+                // FOTOĞRAF KONTROL SİSTEMİ
+        function validatePhotos(pkg, count) {
+            const input = document.getElementById(`files-${pkg}`);
+            const label = document.getElementById(`label-${pkg}`);
+            const btn = document.getElementById(`btn-${pkg}`);
+            
+            if(input.files.length === count) {
+                label.innerText = "✅ " + count + " Fotoğraf hazır!";
+                label.style.color = "#27ae60";
+                btn.disabled = false;
+                tempFiles[pkg] = Array.from(input.files);
+            } else {
+                alert("Hata: Bu paket için tam olarak " + count + " fotoğraf seçmelisiniz. (Şu an: " + input.files.length + ")");
+                label.innerText = "❌ Hatalı sayı: " + input.files.length;
+                label.style.color = "#e74c3c";
+                btn.disabled = true;
+            }
+        }
+
+        // SEPETE EKLEME
+        function addToCart(name, price, pkgKey) {
+            cart.push({ 
+                name: name, 
+                price: price, 
+                photos: tempFiles[pkgKey], 
+                time: new Date().toLocaleTimeString() 
+            });
+            updateCart();
+            alert(name + " sepetinize eklendi!");
+            
+            // Seçimi sıfırla
+            document.getElementById(`btn-${pkgKey}`).disabled = true;
+            document.getElementById(`label-${pkgKey}`).innerText = "Henüz seçilmedi";
+            document.getElementById(`files-${pkgKey}`).value = "";
+        }
+
+        function updateCart() {
+            const list = document.getElementById('cartList');
+            if(cart.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#999;'>Sepetiniz boş.</p>";
+            } else {
+                list.innerHTML = cart.map((item, index) => `
+                    <div class="order-row" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>${item.name}</b><br>
+                            <small>${item.photos.length} Fotoğraf seçildi</small>
+                        </div>
+                        <div style="font-weight:bold; color:#e74c3c;">${item.price} ₺</div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('cartCount').innerText = cart.length;
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('totalPrice').innerText = total;
+            document.getElementById('checkoutBtn').disabled = cart.length === 0;
+        }
+
+        function processOrder() {
+            orders.push({ 
+                id: Date.now(), 
+                items: [...cart], 
+                total: document.getElementById('totalPrice').innerText,
+                time: new Date().toLocaleString() 
+            });
+            cart = [];
+            updateCart();
+            alert("Siparişiniz başarıyla alındı! Yönetici panelinden kontrol edilebilir.");
+        }
+
+        // OYUN MANTIĞI
+        function checkGuess() {
+            const val = document.getElementById('guessInput').value;
+            const res = document.getElementById('guessResult');
+            const rand = Math.floor(Math.random() * 10) + 1;
+            
+            if(!val) { alert("Lütfen bir sayı girin!"); return; }
+
+            if(val == rand) {
+                credits += 5;
+                document.getElementById('userCredits').innerText = credits;
+                res.innerHTML = "🎉 TEBRİKLER! Sayı " + rand + " idi. 5₺ Kredi kazandın!";
+                res.style.color = "#27ae60";
+            } else {
+                res.innerHTML = "❌ Olmadı! Sayı " + rand + " idi. Tekrar dene!";
+                res.style.color = "#e74c3c";
+            }
+        }
+
+        // ADMIN GİRİŞİ
+        function adminLogin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === "ThePassMustiGithub") {
+                document.getElementById('adminAuth').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                renderAdminOrders();
+            } else {
+                alert("Hatalı şifre!");
+            }
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('adminOrders');
+            if(orders.length === 0) {
+                container.innerHTML = "<p style='color:#666; text-align:center;'>Henüz sipariş yok.</p>";
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => `
+                <div class="order-row" style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
+                    <div style="background:#f8f9fa; padding:10px; border-radius:5px; margin-bottom:10px;">
+                        <b>🕒 Sipariş Zamanı:</b> ${order.time} | <b>💰 Toplam:</b> ${order.total} ₺
+                    </div>
+                    ${order.items.map(item => `
+                        <div style="margin-top:10px;">
+                            <p>📦 <b>Paket:</b> ${item.name} (${item.photos.length} Fotoğraf)</p>
+                            <div class="photo-preview">
+                                ${item.photos.map(file => `<img src="${URL.createObjectURL(file)}" title="Büyütmek için tıkla" onclick="window.open(this.src)">`).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function downloadOrderLog() {
+            if(orders.length === 0) { alert("İndirilecek sipariş yok."); return; }
+            let log = "MUSTAFA FOTOĞRAF BASKI SİPARİŞLERİ\n================================\n\n";
+            orders.forEach(o => {
+                log += `ZAMAN: ${o.time}\nTOPLAM: ${o.total} TL\n`;
+                o.items.forEach(i => log += `- ${i.name} (${i.photos.length} Fotoğraf)\n`);
+                log += "--------------------------------\n";
+            });
+            const blob = new Blob([log], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `siparis_kayitlari_${new Date().toLocaleDateString()}.txt`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
