@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fotoğraf Baskı</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        
+        /* Login */
+        #loginPage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+        
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        
+        /* Main App */
+        #appPage {
+            display: none;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .user-info {
+            background: rgba(255,255,255,0.2);
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .nav {
+            background: white;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .nav button {
+            padding: 10px 20px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .page {
+            display: none;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Packages */
+        .package {
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .package h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .price {
+            color: #e74c3c;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .old-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 16px;
+        }
+        
+        .file-input {
+            margin: 15px 0;
+        }
+        
+        .file-input input {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            background: #f8f8f8;
+        }
+        
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        /* Cart */
+        .cart-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        
+        .total {
+            background: #ffd700;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .order-btn {
+            width: 100%;
+            padding: 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+        
+        /* Admin */
+        .admin-box {
+            background: white;
+            padding: 30px;
+            max-width: 300px;
+            margin: 50px auto;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .admin-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .admin-box button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .order-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        
+        .order-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        .download-btn {
+            background: #27ae60;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+    <div class="login-box">
+        <h2>📸 Fotoğraf Baskı</h2>
+        <p>Giriş yapın</p>
+        <input type="text" id="studentName" placeholder="Adınız (en az 3 harf)">
+        <input type="text" id="studentClass" placeholder="Sınıf (örn: 6/A)">
+        <button type="button" onclick="doLogin()">Giriş Yap</button>
+    </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="appPage">
+
+    <div class="header">
+        <h2>📸 Okul Fotoğraf Baskı</h2>
+        <div class="user-info">
+            <span id="displayName"></span> | <span id="displayClass"></span>
+            <button onclick="doLogout()" style="margin-left:10px;background:#e74c3c;color:white;border:none;padding:5px 10px;border-radius:5px;">Çıkış</button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button type="button" onclick="showPage('packages')">📦 Paketler</button>
+        <button type="button" onclick="showPage('cart')">🛒 Sepet</button>
+        <button type="button" onclick="showPage('admin')">👑 Admin</button>
+    </div>
+
+    <!-- PACKAGES -->
+    <div id="packages" class="page active">
+        
+        <div class="package">
+            <h3>😂 Fakirno Paketi - 4 fotoğraf</h3>
+            <p><span class="old-price">20₺</span> <span class="price">15₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file1" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Fakirno', 15, 4, 'file1')">Sepete Ekle</button>
+        </div>
+
+        <div class="package">
+            <h3>📱 Instagram Paketi - 14 fotoğraf</h3>
+            <p><span class="old-price">60₺</span> <span class="price">50₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file2" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Instagram', 50, 14, 'file2')">Sepete Ekle</button>
+        </div>
+
+        <div class="package">
+            <h3>⭐ Meşhuuur Paketi - 28 fotoğraf</h3>
+            <p><span class="old-price">120₺</span> <span class="price">100₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file3" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Meşhuuur', 100, 28, 'file3')">Sepete Ekle</button>
+        </div>
+
+        <div class="package">
+            <h3>💎 Zenginim Paketi - 38 fotoğraf</h3>
+            <p><span class="old-price">160₺</span> <span class="price">130₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file4" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Zenginim', 130, 38, 'file4')">Sepete Ekle</button>
+        </div>
+
+        <div class="package">
+            <h3>🧠 Einstein Paketi - 4 fotoğraf</h3>
+            <p><span class="old-price">12₺</span> <span class="price">9₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file5" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Einstein', 9, 4, 'file5')">Sepete Ekle</button>
+        </div>
+
+        <div class="package">
+            <h3>🚀 Super Zeka Paketi - 8 fotoğraf</h3>
+            <p><span class="old-price">50₺</span> <span class="price">30₺</span></p>
+            <div class="file-input">
+                <input type="file" id="file6" accept="image/*" multiple>
+            </div>
+            <button type="button" class="add-btn" onclick="addToCart('Super Zeka', 30, 8, 'file6')">Sepete Ekle</button>
+        </div>
+
+    </div>
+
+    <!-- CART -->
+    <div id="cart" class="page">
+        <div id="cartContent">
+            <p style="text-align:center;color:#666;">Sepet boş</p>
+        </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin" class="page">
+        <div id="adminLogin" class="admin-box">
+            <h3>🔐 Admin Girişi</h3>
+            <input type="password" id="adminPass" placeholder="Şifre">
+            <button type="button" onclick="checkAdmin()">Giriş</button>
+        </div>
+        
+        <div id="adminPanel" style="display:none;">
+            <h3 style="text-align:center;">📊 Siparişler</h3>
+            <div id="ordersList"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Simple data
+var myCart = [];
+var allOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+var myUser = null;
+
+// Check login
+if(localStorage.getItem('user')) {
+    myUser = JSON.parse(localStorage.getItem('user'));
+    showApp();
+}
+
+function doLogin() {
+    var name = document.getElementById('studentName').value.trim();
+    var cls = document.getElementById('studentClass').value.trim();
+    
+    if(name.length < 3) {
+        alert('İsim en az 3 harf olmalı!');
+        return;
+    }
+    
+    if(!/^\d{1,2}\/[A-Z]$/.test(cls)) {
+        alert('Sınıf formatı: 6/A, 10/B vb.');
+        return;
+    }
+    
+    myUser = {name: name, class: cls};
+    localStorage.setItem('user', JSON.stringify(myUser));
+    showApp();
+}
+
+function showApp() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appPage').style.display = 'block';
+    document.getElementById('displayName').textContent = myUser.name;
+    document.getElementById('displayClass').textContent = myUser.class;
+}
+
+function doLogout() {
+    localStorage.removeItem('user');
+    location.reload();
+}
+
+function showPage(pageName) {
+    document.querySelectorAll('.page').forEach(function(p) {
+        p.classList.remove('active');
+    });
+    document.getElementById(pageName).classList.add('active');
+    
+    if(pageName === 'cart') updateCart();
+    if(pageName === 'admin') document.getElementById('adminPass').value = '';
+}
+
+function addToCart(pName, price, needPhotos, fileId) {
+    var fileInput = document.getElementById(fileId);
+    var files = fileInput.files;
+    
+    if(files.length !== needPhotos) {
+        alert('Tam olarak ' + needPhotos + ' fotoğraf seçmelisiniz! (Seçilen: ' + files.length + ')');
+        return;
+    }
+    
+    // Read files
+    var photos = [];
+    var loaded = 0;
+    
+    for(var i = 0; i < files.length; i++) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            photos.push(e.target.result);
+            loaded++;
+            
+            if(loaded === files.length) {
+                myCart.push({
+                    name: pName,
+                    price: price,
+                    photos: photos
+                });
+                
+                fileInput.value = '';
+                alert(pName + ' eklendi!');
+            }
+        };
+        reader.readAsDataURL(files[i]);
+    }
+}
+
+function updateCart() {
+    var div = document.getElementById('cartContent');
+    
+    if(myCart.length === 0) {
+        div.innerHTML = '<p style="text-align:center;color:#666;">Sepet boş</p>';
+        return;
+    }
+    
+    var html = '';
+    var total = 0;
+    
+    for(var i = 0; i < myCart.length; i++) {
+        var item = myCart[i];
+        total += item.price;
+        
+        html += '<div class="cart-item">';
+        html += '<div>';
+        html += '<strong>' + item.name + '</strong><br>';
+        html += '<small>' + item.photos.length + ' fotoğraf</small><br>';
+        
+        for(var j = 0; j < Math.min(item.photos.length, 3); j++) {
+            html += '<img src="' + item.photos[j] + '">';
+        }
+        
+        html += '</div>';
+        html += '<div>' + item.price + '₺<br>';
+        html += '<button onclick="removeItem(' + i + ')" style="background:#e74c3c;color:white;border:none;padding:5px 10px;border-radius:5px;">Sil</button>';
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    html += '<div class="total">Toplam: ' + total + '₺</div>';
+    html += '<button class="order-btn" onclick="placeOrder()">Sipariş Ver</button>';
+    
+    div.innerHTML = html;
+}
+
+function removeItem(index) {
+    myCart.splice(index, 1);
+    updateCart();
+}
+
+function placeOrder() {
+    if(myCart.length === 0) return;
+    
+    var total = 0;
+    for(var i = 0; i < myCart.length; i++) {
+        total += myCart[i].price;
+    }
+    
+    var order = {
+        id: Date.now(),
+        student: myUser.name,
+        class: myUser.class,
+        items: myCart,
+        total: total,
+        date: new Date().toLocaleString('tr-TR')
+    };
+    
+    allOrders.push(order);
+    localStorage.setItem('orders', JSON.stringify(allOrders));
+    
+    myCart = [];
+    alert('Sipariş alındı! Toplam: ' + total + '₺');
+    showPage('packages');
+}
+
+function checkAdmin() {
+    var pass = document.getElementById('adminPass').value;
+    
+    if(pass === 'ThePassMustiGithub') {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        showOrders();
+    } else {
+        alert('Yanlış şifre!');
+    }
+}
+
+function showOrders() {
+    var div = document.getElementById('ordersList');
+    
+    if(allOrders.length === 0) {
+        div.innerHTML = '<p style="text-align:center;">Henüz sipariş yok</p>';
+        return;
+    }
+    
+    var html = '';
+    
+    for(var i = allOrders.length - 1; i >= 0; i--) {
+        var o = allOrders[i];
+        
+        html += '<div class="order-card">';
+        html += '<strong>' + o.student + '</strong> (' + o.class + ')<br>';
+        html += '<small>' + o.date + '</small><br>';
+        html += 'Tutar: ' + o.total + '₺<br>';
+        
+        for(var j = 0; j < o.items.length; j++) {
+            var item = o.items[j];
+            html += '<div style="margin:10px 0;"><strong>' + item.name + ':</strong><br>';
+            
+            for(var k = 0; k < item.photos.length; k++) {
+                html += '<img src="' + item.photos[k] + '" onclick="downloadImage(\'' + item.photos[k] + '\', \'' + o.student + '_' + item.name + '_' + k + '\')">';
+            }
+            
+            html += '</div>';
+        }
+        
+        html += '<button class="download-btn" onclick="downloadAll(' + i + ')">📥 Hepsini İndir</button>';
+        html += '</div>';
+    }
+    
+    div.innerHTML = html;
+}
+
+function downloadImage(dataUrl, filename) {
+    var a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename + '.jpg';
+    a.click();
+}
+
+function downloadAll(orderIndex) {
+    var order = allOrders[orderIndex];
+    var count = 0;
+    
+    for(var i = 0; i < order.items.length; i++) {
+        for(var j = 0; j < order.items[i].photos.length; j++) {
+            setTimeout((function(photo, name, idx) {
+                return function() {
+                    downloadImage(photo, name + '_' + idx);
+                };
+            })(order.items[i].photos[j], order.student + '_' + order.items[i].name, j), count * 300);
+            count++;
+        }
+    }
+    
+    alert(count + ' fotoğraf indiriliyor...');
+}
+</script>
+
+</body>
+  </html>
+  
