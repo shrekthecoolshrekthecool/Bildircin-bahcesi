@@ -16,28 +16,46 @@
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .packages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .package-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
-        .upload-box { margin: 15px 0; padding: 10px; border: 2px dashed #667eea; border-radius: 10px; }
+        .package-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .upload-box { margin: 15px 0; padding: 10px; border: 2px dashed #667eea; border-radius: 10px; background: #f9f9f9; }
         .admin-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .order-row { border-bottom: 2px solid #eee; padding: 15px 0; }
-        .photo-preview { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-        .photo-preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
+        .order-row { border-bottom: 2px solid #eee; padding: 15px 0; margin-bottom: 10px; }
+        .photo-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .photo-preview img { width: 70px; height: 70px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
         .hidden { display: none !important; }
-        .buy-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .buy-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1.1em; }
         .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .download-btn { background: #3498db; color: white; padding: 10px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .status-btn { padding: 5px 12px; border-radius: 15px; border: none; font-size: 0.8em; font-weight: bold; cursor: pointer; margin-right: 10px; }
+        .status-bekliyor { background: #f1c40f; color: #333; }
+        .status-teslim { background: #27ae60; color: white; }
+        .spam-btn { background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 15px; font-size: 0.8em; cursor: pointer; }
     </style>
 </head>
 <body>
+    <div id="checkoutModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📝 Bilgilerini Gir</h2>
+            <input type="text" id="userName" class="modal-input" placeholder="Adınız Soyadınız">
+            <input type="text" id="userClass" class="modal-input" placeholder="Sınıfınız (Örn: 10-A)">
+            <button class="buy-btn" onclick="confirmOrder()">Siparişi Onayla</button>
+            <button class="nav-btn" style="background:#eee; color:#333; margin-top:10px; width:100%" onclick="closeModal()">İptal</button>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>📸 Okul Fotoğraf Servisi</h1>
-            <div style="background:white; display:inline-block; padding:10px 20px; border-radius:20px; margin-top:10px; font-weight:bold">
+            <div style="background:white; display:inline-block; padding:10px 30px; border-radius:50px; margin-top:15px; font-weight:bold; color:#333">
                 💰 Krediniz: <span id="userCredits">0</span> ₺
             </div>
-              </header>
-                      <div class="nav-tabs">
+        </header>
+
+        <div class="nav-tabs">
             <button class="nav-btn active" onclick="showSection('packages', this)">📦 Paketler</button>
+            <button class="nav-btn" onclick="showSection('games', this)">🎮 Oyunlar</button>
             <button class="nav-btn" onclick="showSection('cart', this)">🛒 Sepet (<span id="cartCount">0</span>)</button>
             <button class="nav-btn" onclick="showSection('admin', this)">👑 Admin</button>
         </div>
@@ -45,327 +63,187 @@
         <div id="packages" class="section active">
             <div class="packages-grid">
                 <div class="package-card">
-                    <div style="font-size:3em">😂</div>
-                    <h2>Fakirno Paketi</h2>
-                    <p>3 Fotoğraf + 1 Bedava</p>
-                    <h3 style="color:#e74c3c">15 ₺</h3>
+                    <div><div style="font-size:3em">😂</div><h2>Fakirno</h2><h3 style="color:#e74c3c">15 ₺</h3><p>4 Fotoğraf</p></div>
                     <div class="upload-box">
                         <input type="file" id="files-fakirno" multiple accept="image/*" onchange="validatePhotos('fakirno', 4)" class="hidden">
-                        <button class="nav-btn" style="border:1px solid #667eea" onclick="document.getElementById('files-fakirno').click()">🖼️ 4 Fotoğraf Seç</button>
-                        <p id="label-fakirno" style="font-size:0.8em; margin-top:5px">Henüz seçilmedi</p>
+                        <button class="nav-btn" style="border:1px solid #667eea; width:100%;" onclick="document.getElementById('files-fakirno').click()">🖼️ Seç</button>
+                        <p id="label-fakirno" style="font-size:0.8em; margin-top:8px;">Henüz seçilmedi</p>
                     </div>
                     <button class="buy-btn" id="btn-fakirno" onclick="addToCart('Fakirno', 15, 'fakirno')" disabled>Sepete Ekle</button>
                 </div>
-
                 <div class="package-card">
-                    <div style="font-size:3em">📱</div>
-                    <h2>Instagram Paketi</h2>
-                    <p>12 Fotoğraf + 2 Bedava</p>
-                    <h3 style="color:#e74c3c">50 ₺</h3>
+                    <div><div style="font-size:3em">📱</div><h2>Instagram</h2><h3 style="color:#e74c3c">50 ₺</h3><p>14 Fotoğraf</p></div>
                     <div class="upload-box">
                         <input type="file" id="files-insta" multiple accept="image/*" onchange="validatePhotos('insta', 14)" class="hidden">
-                        <button class="nav-btn" style="border:1px solid #667eea" onclick="document.getElementById('files-insta').click()">🖼️ 14 Fotoğraf Seç</button>
-                        <p id="label-insta" style="font-size:0.8em; margin-top:5px">Henüz seçilmedi</p>
+                        <button class="nav-btn" style="border:1px solid #667eea; width:100%;" onclick="document.getElementById('files-insta').click()">🖼️ Seç</button>
+                        <p id="label-insta" style="font-size:0.8em; margin-top:8px;">Henüz seçilmedi</p>
                     </div>
                     <button class="buy-btn" id="btn-insta" onclick="addToCart('Instagram', 50, 'insta')" disabled>Sepete Ekle</button>
                 </div>
             </div>
         </div>
+                <div id="games" class="section">
+            <div class="packages-grid">
+                <div class="package-card">
+                    <h3>🎯 Sayıyı Bul</h3>
+                    <p>1-10 arası tahmin et, 5₺ kazan!</p>
+                    <input type="number" id="guessInput" style="padding:10px; width:80px; margin:10px auto; display:block">
+                    <button class="nav-btn" style="background:#667eea; color:white;" onclick="checkGuess()">Tahmin Et</button>
+                    <p id="guessResult" style="margin-top:10px; font-weight:bold"></p>
+                </div>
+            </div>
+        </div>
 
         <div id="cart" class="section">
             <div class="admin-card">
-                <h2>Sepetiniz</h2>
+                <h2>🛒 Sepetiniz</h2>
                 <div id="cartList"></div>
-                <hr style="margin:15px 0">
-                <div style="font-size:1.5em; font-weight:bold; text-align:center">Toplam: <span id="totalPrice">0</span> ₺</div>
-                <button class="buy-btn" id="checkoutBtn" onclick="processOrder()" disabled>Siparişi Tamamla</button>
+                <div style="text-align:center; margin-top:20px;">
+                    <h3>Toplam: <span id="totalPrice">0</span> ₺</h3>
+                    <button class="buy-btn" id="checkoutBtn" onclick="openModal()" disabled>Siparişi Tamamla</button>
+                </div>
             </div>
         </div>
 
         <div id="admin" class="section">
-            <div id="adminAuth" class="admin-card" style="text-align:center">
-                <h3>Yönetici Girişi</h3>
-                <input type="password" id="adminPass" placeholder="Şifre" style="padding:10px; margin:10px; border-radius:5px; border:1px solid #ccc">
-                <button class="nav-btn" style="background:#667eea; color:white" onclick="adminLogin()">Giriş Yap</button>
+            <div id="adminAuth" class="admin-card" style="text-align:center;">
+                <input type="password" id="adminPass" placeholder="Admin Şifresi" style="padding:10px; border-radius:10px; border:1px solid #ccc">
+                <button class="nav-btn" onclick="adminLogin()">Giriş</button>
             </div>
             <div id="adminPanel" class="hidden">
                 <div class="admin-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center">
-                        <h2>Gelen Siparişler</h2>
-                        <button class="download-btn" onclick="downloadOrderLog()">📁 Kayıtları İndir (.txt)</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>👑 Siparişler</h2>
+                        <button class="nav-btn" onclick="downloadOrderLog()">📁 Kayıtları İndir</button>
                     </div>
                     <div id="adminOrders" style="margin-top:20px"></div>
                 </div>
             </div>
         </div>
-  </div>
-      <script>
-        let cart = []; let orders = []; let tempFiles = {};
+    </div>
+        <script>
+        let credits = 0; let cart = []; let orders = []; let tempFiles = {};
+
         function showSection(id, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if(btn) btn.classList.add('active');
             if(id === 'admin' && !document.getElementById('adminPanel').classList.contains('hidden')) renderAdminOrders();
         }
+
         function validatePhotos(pkg, count) {
             const input = document.getElementById(`files-${pkg}`);
             const label = document.getElementById(`label-${pkg}`);
             const btn = document.getElementById(`btn-${pkg}`);
             if(input.files.length === count) {
-                label.innerText = "✅ " + count + " Fotoğraf hazır!"; label.style.color = "green";
-                btn.disabled = false; tempFiles[pkg] = Array.from(input.files);
-            } else { alert("Hata: Tam olarak " + count + " fotoğraf gerekli."); btn.disabled = true; }
+                label.innerText = "✅ Hazır!"; label.style.color = "green"; btn.disabled = false;
+                tempFiles[pkg] = Array.from(input.files);
+            } else { btn.disabled = true; label.innerText = "❌ Hatalı sayı"; }
         }
+
         function addToCart(name, price, pkgKey) {
-            cart.push({ name, price, photos: tempFiles[pkgKey], timestamp: new Date().toLocaleString() });
-            updateCart(); alert(name + " sepete eklendi!");
+            cart.push({ name, price, photos: tempFiles[pkgKey] });
+            updateCart();
             document.getElementById(`btn-${pkgKey}`).disabled = true;
             document.getElementById(`label-${pkgKey}`).innerText = "Henüz seçilmedi";
         }
+
         function updateCart() {
             const list = document.getElementById('cartList');
-            list.innerHTML = cart.map(item => `<div style="padding:10px; border-bottom:1px solid #eee"><b>${item.name}</b> - ${item.price} ₺</div>`).join('');
+            list.innerHTML = cart.map(i => `<div class="order-row">${i.name} - ${i.price} ₺</div>`).join('');
             document.getElementById('cartCount').innerText = cart.length;
-            const total = cart.reduce((sum, i) => sum + i.price, 0);
+            const total = cart.reduce((s, i) => s + i.price, 0);
             document.getElementById('totalPrice').innerText = total;
             document.getElementById('checkoutBtn').disabled = cart.length === 0;
         }
-        function processOrder() {
-            orders.push({ id: Date.now(), items: [...cart], time: new Date().toLocaleString() });
-            cart = []; updateCart(); alert("Sipariş Başarılı!");
+
+        function openModal() { document.getElementById('checkoutModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('checkoutModal').classList.add('hidden'); }
+
+        function confirmOrder() {
+            const name = document.getElementById('userName').value;
+            const classInfo = document.getElementById('userClass').value;
+            const total = parseInt(document.getElementById('totalPrice').innerText);
+            if(!name || !classInfo) { alert("Bilgileri eksiksiz girin!"); return; }
+
+            let finalPrice = total;
+            if(credits > 0 && confirm(`${credits}₺ kredinizi kullanmak ister misiniz?`)) {
+                if(credits >= total) { credits -= total; finalPrice = 0; }
+                else { finalPrice = total - credits; credits = 0; }
+                document.getElementById('userCredits').innerText = credits;
+            }
+
+            orders.push({
+                id: Date.now(), user: name, class: classInfo,
+                items: [...cart], paid: finalPrice, status: 'bekliyor',
+                time: new Date().toLocaleTimeString()
+            });
+            cart = []; updateCart(); closeModal();
+            alert("Sipariş başarıyla iletildi!");
         }
-        function adminLogin() {
+                    function adminLogin() {
             if(document.getElementById('adminPass').value === "ThePassMustiGithub") {
                 document.getElementById('adminAuth').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
                 renderAdminOrders();
-            } else { alert("Hatalı Şifre!"); }
+            } else { alert("Şifre yanlış!"); }
         }
+
+        function toggleStatus(id) {
+            const o = orders.find(x => x.id === id);
+            o.status = (o.status === 'bekliyor') ? 'teslim edildi' : 'bekliyor';
+            renderAdminOrders();
+        }
+
+        function markSpam(id) {
+            if(confirm("Silmek istediğine emin misin?")) {
+                orders = orders.filter(x => x.id !== id);
+                renderAdminOrders();
+            }
+        }
+
         function renderAdminOrders() {
             const container = document.getElementById('adminOrders');
-            if(orders.length === 0) { container.innerHTML = "<p>Sipariş yok.</p>"; return; }
-            container.innerHTML = orders.map(order => `
+            if(orders.length === 0) { container.innerHTML = "Sipariş yok."; return; }
+            container.innerHTML = orders.map(o => `
                 <div class="order-row">
-                    <p style="background:#f8f9fa; padding:5px">🕒 <b>Zaman:</b> ${order.time}</p>
-                    ${order.items.map(item => `
-                        <div style="margin-top:10px">
-                            <p><b>Paket:</b> ${item.name} (${item.photos.length} Fotoğraf)</p>
-                            <div class="photo-preview">
-                                ${item.photos.map(file => `<img src="${URL.createObjectURL(file)}" title="Büyütmek için tıkla" onclick="window.open(this.src)">`).join('')}
-                            </div>
-                        </div>`).join('')}
-                </div>`).join('');
-        }
-        function downloadOrderLog() {
-            if(orders.length === 0) return;
-            let text = "SİPARİŞ KAYITLARI\n================\n\n";
-            orders.forEach(o => {
-                text += `ZAMAN: ${o.time}\n`;
-                o.items.forEach(i => text += `- ${i.name}: ${i.price} TL\n`);
-                text += "----------------\n";
-            });
-            const blob = new Blob([text], { type: 'text/plain' });
-            const anchor = document.createElement('a');
-            anchor.download = `siparisler.txt`; anchor.href = window.URL.createObjectURL(blob);
-            anchor.click();
-        }
-    </script>
-</body>
-</html>
-        <div id="cart" class="section">
-            <div class="admin-card">
-                <h2 style="text-align: center; margin-bottom: 20px;">🛒 Sepetiniz</h2>
-                <div id="cartList"></div>
-                <hr style="margin:20px 0; border: 1px solid #eee;">
-                <div style="font-size:1.8em; font-weight:bold; text-align:center; color: #2c3e50;">
-                    Toplam: <span id="totalPrice">0</span> ₺
-                </div>
-                <button class="buy-btn" id="checkoutBtn" onclick="processOrder()" disabled style="height: 60px; font-size: 1.4em; margin-top: 20px;">
-                    Siparişi Tamamla
-                </button>
-            </div>
-        </div>
-
-        <div id="admin" class="section">
-            <div id="adminAuth" class="admin-card" style="text-align:center; max-width: 400px; margin: 0 auto;">
-                <h3 style="margin-bottom: 15px;">Yönetici Girişi</h3>
-                <input type="password" id="adminPass" placeholder="Şifre" style="padding:12px; width: 100%; margin-bottom:15px; border-radius:10px; border:1px solid #ccc; font-size: 1.1em;">
-                <button class="nav-btn" style="background:#667eea; color:white; width: 100%;" onclick="adminLogin()">Giriş Yap</button>
-            </div>
-            
-            <div id="adminPanel" class="hidden">
-                <div class="admin-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
-                        <h2>👑 Gelen Siparişler</h2>
-                        <button class="download-btn" onclick="downloadOrderLog()">📁 Kayıtları İndir (.txt)</button>
+                    <div>
+                        <b>👤 ${o.user} (${o.class})</b> | 💰 Borç: ${o.paid}₺
+                        <br>
+                        <button class="status-btn ${o.status==='bekliyor'?'status-bekliyor':'status-teslim'}" onclick="toggleStatus(${o.id})">
+                            ${o.status.toUpperCase()}
+                        </button>
+                        <button class="spam-btn" onclick="markSpam(${o.id})">SPAM/SİL</button>
                     </div>
-                    <div id="adminOrders" style="margin-top:20px;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // DEĞİŞKENLER
-        let credits = 0;
-        let cart = [];
-        let orders = [];
-        let tempFiles = {};
-
-        // SAYFA SEKME SİSTEMİ
-        function showSection(id, btn) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            
-            // Eğer buton objesi gönderildiyse (nav-tabs içinden)
-            if(btn && btn.classList) {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-            
-            if(id === 'admin' && !document.getElementById('adminPanel').classList.contains('hidden')) {
-                renderAdminOrders();
-            }
-        }
-                // FOTOĞRAF KONTROL SİSTEMİ
-        function validatePhotos(pkg, count) {
-            const input = document.getElementById(`files-${pkg}`);
-            const label = document.getElementById(`label-${pkg}`);
-            const btn = document.getElementById(`btn-${pkg}`);
-            
-            if(input.files.length === count) {
-                label.innerText = "✅ " + count + " Fotoğraf hazır!";
-                label.style.color = "#27ae60";
-                btn.disabled = false;
-                tempFiles[pkg] = Array.from(input.files);
-            } else {
-                alert("Hata: Bu paket için tam olarak " + count + " fotoğraf seçmelisiniz. (Şu an: " + input.files.length + ")");
-                label.innerText = "❌ Hatalı sayı: " + input.files.length;
-                label.style.color = "#e74c3c";
-                btn.disabled = true;
-            }
-        }
-
-        // SEPETE EKLEME
-        function addToCart(name, price, pkgKey) {
-            cart.push({ 
-                name: name, 
-                price: price, 
-                photos: tempFiles[pkgKey], 
-                time: new Date().toLocaleTimeString() 
-            });
-            updateCart();
-            alert(name + " sepetinize eklendi!");
-            
-            // Seçimi sıfırla
-            document.getElementById(`btn-${pkgKey}`).disabled = true;
-            document.getElementById(`label-${pkgKey}`).innerText = "Henüz seçilmedi";
-            document.getElementById(`files-${pkgKey}`).value = "";
-        }
-
-        function updateCart() {
-            const list = document.getElementById('cartList');
-            if(cart.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:#999;'>Sepetiniz boş.</p>";
-            } else {
-                list.innerHTML = cart.map((item, index) => `
-                    <div class="order-row" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <b>${item.name}</b><br>
-                            <small>${item.photos.length} Fotoğraf seçildi</small>
-                        </div>
-                        <div style="font-weight:bold; color:#e74c3c;">${item.price} ₺</div>
-                    </div>
-                `).join('');
-            }
-            
-            document.getElementById('cartCount').innerText = cart.length;
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('totalPrice').innerText = total;
-            document.getElementById('checkoutBtn').disabled = cart.length === 0;
-        }
-
-        function processOrder() {
-            orders.push({ 
-                id: Date.now(), 
-                items: [...cart], 
-                total: document.getElementById('totalPrice').innerText,
-                time: new Date().toLocaleString() 
-            });
-            cart = [];
-            updateCart();
-            alert("Siparişiniz başarıyla alındı! Yönetici panelinden kontrol edilebilir.");
-        }
-
-        // OYUN MANTIĞI
-        function checkGuess() {
-            const val = document.getElementById('guessInput').value;
-            const res = document.getElementById('guessResult');
-            const rand = Math.floor(Math.random() * 10) + 1;
-            
-            if(!val) { alert("Lütfen bir sayı girin!"); return; }
-
-            if(val == rand) {
-                credits += 5;
-                document.getElementById('userCredits').innerText = credits;
-                res.innerHTML = "🎉 TEBRİKLER! Sayı " + rand + " idi. 5₺ Kredi kazandın!";
-                res.style.color = "#27ae60";
-            } else {
-                res.innerHTML = "❌ Olmadı! Sayı " + rand + " idi. Tekrar dene!";
-                res.style.color = "#e74c3c";
-            }
-        }
-
-        // ADMIN GİRİŞİ
-        function adminLogin() {
-            const pass = document.getElementById('adminPass').value;
-            if(pass === "ThePassMustiGithub") {
-                document.getElementById('adminAuth').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-                renderAdminOrders();
-            } else {
-                alert("Hatalı şifre!");
-            }
-        }
-
-        function renderAdminOrders() {
-            const container = document.getElementById('adminOrders');
-            if(orders.length === 0) {
-                container.innerHTML = "<p style='color:#666; text-align:center;'>Henüz sipariş yok.</p>";
-                return;
-            }
-            
-            container.innerHTML = orders.map(order => `
-                <div class="order-row" style="border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 10px;">
-                    <div style="background:#f8f9fa; padding:10px; border-radius:5px; margin-bottom:10px;">
-                        <b>🕒 Sipariş Zamanı:</b> ${order.time} | <b>💰 Toplam:</b> ${order.total} ₺
-                    </div>
-                    ${order.items.map(item => `
-                        <div style="margin-top:10px;">
-                            <p>📦 <b>Paket:</b> ${item.name} (${item.photos.length} Fotoğraf)</p>
-                            <div class="photo-preview">
-                                ${item.photos.map(file => `<img src="${URL.createObjectURL(file)}" title="Büyütmek için tıkla" onclick="window.open(this.src)">`).join('')}
-                            </div>
+                    ${o.items.map(i => `
+                        <div style="margin-top:10px">${i.name} (${i.photos.length} Foto)</div>
+                        <div class="photo-preview">
+                            ${i.photos.map(p => `<img src="${URL.createObjectURL(p)}" onclick="window.open(this.src)">`).join('')}
                         </div>
                     `).join('')}
                 </div>
             `).join('');
         }
 
+        function checkGuess() {
+            const v = document.getElementById('guessInput').value;
+            const r = Math.floor(Math.random()*10)+1;
+            const res = document.getElementById('guessResult');
+            if(v == r) { 
+                credits += 5; document.getElementById('userCredits').innerText = credits; 
+                res.innerText = "🎉 BİLDİN! +5₺"; res.style.color = "green";
+            } else { 
+                res.innerText = "❌ Yanlış! Sayı " + r + " idi."; res.style.color = "red";
+            }
+        }
+
         function downloadOrderLog() {
-            if(orders.length === 0) { alert("İndirilecek sipariş yok."); return; }
-            let log = "MUSTAFA FOTOĞRAF BASKI SİPARİŞLERİ\n================================\n\n";
-            orders.forEach(o => {
-                log += `ZAMAN: ${o.time}\nTOPLAM: ${o.total} TL\n`;
-                o.items.forEach(i => log += `- ${i.name} (${i.photos.length} Fotoğraf)\n`);
-                log += "--------------------------------\n";
-            });
+            let log = "SİPARİŞLER\n==========\n\n";
+            orders.forEach(o => log += `${o.time} - ${o.user} (${o.class}) - Borç: ${o.paid}₺\n`);
             const blob = new Blob([log], { type: 'text/plain' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `siparis_kayitlari_${new Date().toLocaleDateString()}.txt`;
-            link.click();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = "siparisler.txt"; a.click();
         }
     </script>
 </body>
