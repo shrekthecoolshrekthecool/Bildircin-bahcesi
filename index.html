@@ -1,237 +1,222 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📸 Fotoğraf Baskı Sistemi</title>
+    <title>Quail Farm - Global</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; overflow-x: hidden; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; filter: blur(15px); pointer-events: none; transition: 0.5s; }
-        body.unlocked .container { filter: blur(0); pointer-events: auto; }
-        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .auth-box { background: white; padding: 40px; border-radius: 25px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        header { text-align: center; color: white; padding: 20px; cursor: pointer; }
-        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
-        .nav-btn { padding: 12px 24px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; background: white; color: #667eea; transition: 0.3s; }
-        .nav-btn.active { background: #ffd700; color: #333; }
-        .section { display: none; }
-        .section.active { display: block; }
-        .packages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .package-card { background: white; border-radius: 20px; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .buy-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .input-style { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; }
-        .photo-preview img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin: 2px; border: 1px solid #eee; }
-        .hidden { display: none !important; }
+        :root {
+            --egg-cream: #FDF5E6;
+            --speckle-brown: #4E342E;
+            --teal-accent: #4DB6AC;
+            --white: #FFFFFF;
+        }
+
+        body {
+            background-color: var(--egg-cream);
+            font-family: 'Trebuchet MS', sans-serif;
+            color: var(--speckle-brown);
+            margin: 0; padding: 20px;
+        }
+
+        /* LANGUAGE POPUP */
+        #lang-popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(46, 34, 34, 0.98);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .flag-btn { font-size: 60px; cursor: pointer; margin: 15px; transition: 0.3s; }
+        .flag-btn:hover { transform: scale(1.2); }
+
+        /* HEADER */
+        .header-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--white); padding: 15px; border-radius: 12px;
+            border: 3px solid var(--speckle-brown); margin-bottom: 20px;
+        }
+        #owner-input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+
+        /* SHOP CARDS */
+        .shop-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .card {
+            background: var(--white); padding: 20px; border-radius: 20px;
+            width: 260px; text-align: center; border: 2px solid var(--speckle-brown);
+            box-shadow: 8px 8px 0px var(--teal-accent);
+        }
+        .promo-text { font-weight: bold; font-size: 14px; display: block; height: 20px; margin-bottom: 5px; }
+        .price-tag { font-size: 28px; font-weight: bold; }
+
+        /* CART & OWNER PANEL */
+        #cart, #owner-panel {
+            margin: 30px auto; max-width: 600px; background: var(--white); padding: 25px;
+            border-radius: 20px; border: 2px solid var(--speckle-brown);
+        }
+        #owner-panel { background: #fffcf0; border-color: #d32f2f; display: none; }
+        
+        button {
+            background: var(--speckle-brown); color: white; border: none;
+            padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+        button:hover { background: var(--teal-accent); }
+        input { padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ddd; }
     </style>
 </head>
-<body id="mainBody">
-    <div id="authOverlay">
-        <div class="auth-box">
-            <h2>👋 Hoş Geldiniz</h2>
-            <p style="margin-bottom: 20px; color: #666;">Devam etmek için giriş yapın.</p>
-            <input type="text" id="authName" class="input-style" placeholder="Ad Soyad">
-            <input type="text" id="authClass" class="input-style" placeholder="Sınıf (Örn: 8-A)">
-            <button class="buy-btn" onclick="handleAuth()">Giriş Yap / Kayıt Ol</button>
-        </div>
+<body>
+
+<div id="lang-popup">
+    <h1 style="color: white;">Select Language</h1>
+    <div>
+        <span class="flag-btn" onclick="closeLang()">🇹🇷</span>
+        <span class="flag-btn" onclick="closeLang()">🇬🇧</span>
+        <span class="flag-btn" onclick="closeLang()">🇸🇦</span>
+    </div>
+</div>
+
+<div class="header-panel">
+    <h1>Quail Farm</h1>
+    <input type="password" id="owner-input" placeholder="Owner Code..." oninput="checkOwnerCode(this.value)">
+</div>
+
+<div class="shop-container">
+    <div class="card">
+        <span id="egg-promo" class="promo-text"></span>
+        <h2>Quail Egg</h2>
+        <div class="price-tag"><span id="egg-price-display">7</span> TL</div>
+        <br>
+        <input type="number" id="egg-qty" value="1" min="1" style="width: 50px;">
+        <button onclick="order('Egg')">Add to Cart</button>
     </div>
 
-    <div class="container">
-        <header onclick="secretClick()">
-            <h1 id="titleTxt">📸 Okul Fotoğraf Servisi</h1>
-            <div style="background:white; display:inline-block; padding:8px 20px; border-radius:50px; margin-top:10px; color:#333; font-weight:bold; font-size:0.9rem;">
-                👤 <span id="dispName">...</span> <span id="dispCode" style="color:#667eea">#0000</span> | 💰 <span id="userCredits">0</span> ₺
-            </div>
-        </header>
-
-        <div class="nav-tabs">
-            <button class="nav-btn active" onclick="showSection('packages', this)">📦 Paketler</button>
-            <button class="nav-btn" onclick="showSection('games', this)">🎡 Çark</button>
-            <button class="nav-btn" onclick="showSection('cart', this)">🛒 Sepet (<span id="cartCount">0</span>)</button>
-            <button id="adminTab" class="nav-btn hidden" onclick="showSection('admin', this)">👑 Yönetim</button>
-        </div>
-        <div id="packages" class="section active">
-            <div class="packages-grid">
-                <div class="package-card">
-                    <div><h2>Fakirno</h2><h3 style="color:#e74c3c">15 ₺</h3><p>4 Fotoğraf</p></div>
-                    <input type="file" id="files-fakirno" multiple accept="image/*" onchange="validatePhotos('fakirno', 4)" class="hidden">
-                    <button class="nav-btn" style="border:1px solid #667eea; margin-top:10px;" onclick="document.getElementById('files-fakirno').click()">🖼️ Foto Seç</button>
-                    <button class="buy-btn" id="btn-fakirno" onclick="addToCart('Fakirno', 15, 'fakirno')" disabled>Sepete Ekle</button>
-                </div>
-                <div class="package-card">
-                    <div><h2>Instagram</h2><h3 style="color:#e74c3c">50 ₺</h3><p>14 Fotoğraf</p></div>
-                    <input type="file" id="files-insta" multiple accept="image/*" onchange="validatePhotos('insta', 14)" class="hidden">
-                    <button class="nav-btn" style="border:1px solid #667eea; margin-top:10px;" onclick="document.getElementById('files-insta').click()">🖼️ Foto Seç</button>
-                    <button class="buy-btn" id="btn-insta" onclick="addToCart('Instagram', 50, 'insta')" disabled>Sepete Ekle</button>
-                </div>
-                <div class="package-card">
-                    <div><h2>Einstein</h2><h3 style="color:#e74c3c">80 ₺</h3><p>25 Fotoğraf</p></div>
-                    <input type="file" id="files-ein" multiple accept="image/*" onchange="validatePhotos('ein', 25)" class="hidden">
-                    <button class="nav-btn" style="border:1px solid #667eea; margin-top:10px;" onclick="document.getElementById('files-ein').click()">🖼️ Foto Seç</button>
-                    <button class="buy-btn" id="btn-ein" onclick="addToCart('Einstein', 80, 'ein')" disabled>Sepete Ekle</button>
-                </div>
-                <div class="package-card">
-                    <div><h2>Zengin</h2><h3 style="color:#e74c3c">150 ₺</h3><p>50 Fotoğraf</p></div>
-                    <input type="file" id="files-rich" multiple accept="image/*" onchange="validatePhotos('rich', 50)" class="hidden">
-                    <button class="nav-btn" style="border:1px solid #667eea; margin-top:10px;" onclick="document.getElementById('files-rich').click()">🖼️ Foto Seç</button>
-                    <button class="buy-btn" id="btn-rich" onclick="addToCart('Zengin', 150, 'rich')" disabled>Sepete Ekle</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="games" class="section">
-            <div class="package-card" style="max-width:400px; margin:0 auto;">
-                <h3>🎡 Şans Çarkı</h3>
-                <div id="wheel" style="width:200px; height:200px; border-radius:50%; border:5px solid #333; margin:20px auto; transition: 4s; background: conic-gradient(#f1c40f 0% 25%, #ecf0f1 25% 50%, #2ecc71 50% 75%, #3498db 75% 100%);"></div>
-                <button class="buy-btn" style="background:#8e44ad" onclick="spinWheel()">ÇEVİR</button>
-            </div>
-        </div>
-        <div id="cart" class="section">
-            <div class="package-card">
-                <h2>🛒 Sepetiniz</h2>
-                <div id="cartList" style="margin:20px 0;"></div>
-                <h3>Toplam: <span id="totalPrice">0</span> ₺</h3>
-                <button class="buy-btn" id="checkoutBtn" onclick="processOrder()" disabled>Siparişi Tamamla</button>
-            </div>
-        </div>
-
-        <div id="admin" class="section">
-            <div class="package-card">
-                <h2>👑 Yönetim Paneli</h2>
-                <div id="adminOrders" style="text-align:left; margin-top:20px;"></div>
-            </div>
-        </div>
+    <div class="card">
+        <span id="quail-promo" class="promo-text"></span>
+        <h2>Live Quail</h2>
+        <div class="price-tag"><span id="quail-price-display">135</span> TL</div>
+        <br>
+        <input type="number" id="quail-qty" value="1" min="1" style="width: 50px;">
+        <button onclick="order('Quail')">Add to Cart</button>
     </div>
-    <script>
-    let currentUser = null;
-    let credits = 0; let cart = []; let orders = []; let tempFiles = {};
-    let secretCounter = 0;
+</div>
 
-    function handleAuth() {
-        try {
-            const inName = document.getElementById('authName').value.trim();
-            const inClass = document.getElementById('authClass').value.trim();
-            
-            if(inName.length < 2 || inClass.length < 1) {
-                alert("Lütfen adınızı ve sınıfınızı girin!");
-                return;
-            }
+<div id="cart" style="display: none;">
+    <h2>Your Basket</h2>
+    <div id="cart-list"></div>
+</div>
 
-            let savedData = localStorage.getItem('photoUser');
-            let userObj = savedData ? JSON.parse(savedData) : null;
-            const today = new Date().toDateString();
+<div id="owner-panel">
+    <h2 style="color: #d32f2f;">Owner Control Center</h2>
+    <div style="border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+        <h3>Update Shop Prices & Promos</h3>
+        Egg Price: <input type="number" id="adm-egg-p" value="7"> 
+        Text: <input type="text" id="adm-egg-t"> 
+        Color: <input type="color" id="adm-egg-c" value="#ff0000"><br>
+        
+        Quail Price: <input type="number" id="adm-quail-p" value="135"> 
+        Text: <input type="text" id="adm-quail-t"> 
+        Color: <input type="color" id="adm-quail-c" value="#ff0000"><br>
+        
+        <button onclick="saveSettings()">Apply Changes Globally</button>
+    </div>
 
-            if(userObj) {
-                // Change check
-                if(userObj.uName !== inName || userObj.uClass !== inClass) {
-                    if(localStorage.getItem('lastUpdate') === today) {
-                        alert("Günde sadece 1 kez değişiklik yapabilirsin!");
-                    } else {
-                        userObj.uName = inName;
-                        userObj.uClass = inClass;
-                        localStorage.setItem('lastUpdate', today);
-                    }
-                }
-            } else {
-                // New User
-                userObj = { 
-                    uName: inName, 
-                    uClass: inClass, 
-                    uCode: Math.floor(1000 + Math.random() * 9000), 
-                    uCredits: 0 
-                };
-            }
+    <h3>Live Orders</h3>
+    <div id="admin-orders"></div>
+</div>
 
-            currentUser = userObj;
-            localStorage.setItem('photoUser', JSON.stringify(currentUser));
-            
-            document.getElementById('dispName').innerText = currentUser.uName;
-            document.getElementById('dispCode').innerText = "#" + currentUser.uCode;
-            document.getElementById('userCredits').innerText = currentUser.uCredits;
-            document.getElementById('mainBody').classList.add('unlocked');
-            document.getElementById('authOverlay').classList.add('hidden');
-        } catch(e) {
-            alert("Sistem Hatası: " + e.message);
+<script>
+    // FIREBASE INITIALIZATION
+    const firebaseConfig = {
+        databaseURL: "https://realtime-numbers-ddc3e-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const statuses = ["Harvesting", "Harvested, Packing", "Delivering", "Delivered!"];
+
+    function closeLang() { document.getElementById('lang-popup').style.display = 'none'; }
+
+    function checkOwnerCode(val) {
+        if(val === "ThePassMustiGithub") {
+            document.getElementById('owner-panel').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
         }
     }
 
-    function secretClick() {
-        secretCounter++;
-        if(secretCounter >= 5) {
-            let p = prompt("Yönetici Anahtarı:");
-            if(p === "ThePassMustiGithub") {
-                document.getElementById('adminTab').classList.remove('hidden');
-                alert("Admin paneli açıldı!");
-            }
-            secretCounter = 0;
-        }
-    }
-
-    function showSection(id, btn) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if(id === 'admin') renderAdmin();
-    }
-
-    function validatePhotos(pkg, count) {
-        const input = document.getElementById(`files-${pkg}`);
-        if(input.files.length === count) {
-            document.getElementById(`btn-${pkg}`).disabled = false;
-            tempFiles[pkg] = Array.from(input.files);
-        } else { alert("Hata: " + count + " adet fotoğraf seçmelisin!"); }
-    }
-
-    function addToCart(name, price, pkgKey) {
-        cart.push({ name, price, photos: tempFiles[pkgKey] });
-        updateCart();
-        alert("Sepete eklendi!");
-    }
-
-    function updateCart() {
-        const list = document.getElementById('cartList');
-        list.innerHTML = cart.map(i => `<div style="padding:5px; border-bottom:1px solid #eee;">${i.name} - ${i.price}₺</div>`).join('');
-        const total = cart.reduce((s, i) => s + i.price, 0);
-        document.getElementById('totalPrice').innerText = total;
-        document.getElementById('cartCount').innerText = cart.length;
-        document.getElementById('checkoutBtn').disabled = cart.length === 0;
-    }
-
-    function processOrder() {
-        orders.push({ 
-            user: currentUser.uName, 
-            class: currentUser.uClass, 
-            code: currentUser.uCode, 
-            items: [...cart], 
-            time: new Date().toLocaleTimeString() 
+    function saveSettings() {
+        db.ref('settings').set({
+            eggP: document.getElementById('adm-egg-p').value,
+            eggT: document.getElementById('adm-egg-t').value,
+            eggC: document.getElementById('adm-egg-c').value,
+            quailP: document.getElementById('adm-quail-p').value,
+            quailT: document.getElementById('adm-quail-t').value,
+            quailC: document.getElementById('adm-quail-c').value
         });
-        cart = []; updateCart();
-        alert("Sipariş Alındı! Numaranız: #" + currentUser.uCode);
+        alert("Prices updated for all users!");
     }
 
-    function spinWheel() {
-        if(localStorage.getItem('lastSpin') === new Date().toDateString()) return alert("Bugünlük hakkın bitti!");
-        const deg = 1800 + Math.random() * 1800;
-        document.getElementById('wheel').style.transform = `rotate(${deg}deg)`;
-        setTimeout(() => {
-            currentUser.uCredits += 5;
-            document.getElementById('userCredits').innerText = currentUser.uCredits;
-            localStorage.setItem('photoUser', JSON.stringify(currentUser));
-            localStorage.setItem('lastSpin', new Date().toDateString());
-            alert("Tebrikler! 5 Kredi kazandın.");
-        }, 4000);
+    db.ref('settings').on('value', (snap) => {
+        const s = snap.val();
+        if(s) {
+            document.getElementById('egg-price-display').innerText = s.eggP;
+            document.getElementById('egg-promo').innerText = s.eggT;
+            document.getElementById('egg-promo').style.color = s.eggC;
+            document.getElementById('quail-price-display').innerText = s.quailP;
+            document.getElementById('quail-promo').innerText = s.quailT;
+            document.getElementById('quail-promo').style.color = s.quailC;
+        }
+    });
+
+    function order(type) {
+        const qty = (type === 'Egg') ? document.getElementById('egg-qty').value : document.getElementById('quail-qty').value;
+        const price = (type === 'Egg') ? document.getElementById('egg-price-display').innerText : document.getElementById('quail-price-display').innerText;
+        
+        const newOrder = {
+            item: type,
+            quantity: qty,
+            total: qty * price,
+            status: "Harvesting",
+            timestamp: Date.now()
+        };
+        
+        db.ref('orders').push(newOrder);
+        document.getElementById('cart').style.display = 'block';
+        alert("Success! Check your status in the basket.");
     }
 
-    function renderAdmin() {
-        const cont = document.getElementById('adminOrders');
-        cont.innerHTML = orders.map(o => `
-            <div style="border-bottom:1px solid #ddd; padding:10px; margin-bottom:10px;">
-                <b>👤 ${o.user} (${o.class}) <span style="color:blue">#${o.code}</span></b>
-                <div style="margin-top:5px;">${o.items.map(i => i.photos.map(p => `<img src="${URL.createObjectURL(p)}" style="width:50px; height:50px; object-fit:cover; margin:2px;">`).join('')).join('')}</div>
-            </div>
-        `).join('');
+    db.ref('orders').on('value', (snap) => {
+        const orders = snap.val();
+        const cartList = document.getElementById('cart-list');
+        const adminList = document.getElementById('admin-orders');
+        
+        cartList.innerHTML = "";
+        adminList.innerHTML = "";
+
+        for(let id in orders) {
+            const o = orders[id];
+            cartList.innerHTML += `<p>📦 <b>${o.quantity}x ${o.item}</b> - Status: <span style="color:var(--teal-accent)">${o.status}</span></p>`;
+            
+            adminList.innerHTML += `
+                <div style="border:1px solid #ccc; padding:10px; margin-bottom:5px; background:#fff;">
+                    ${o.quantity} ${o.item} (${o.total} TL) <br>
+                    <button onclick="nextStatus('${id}', '${o.status}')">Update Status: ${o.status}</button>
+                    <button style="background:#ff4d4d" onclick="deleteOrder('${id}')">Delete</button>
+                </div>`;
+        }
+    });
+
+    function nextStatus(id, current) {
+        let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
+        db.ref('orders/' + id).update({ status: statuses[nextIdx] });
+    }
+
+    function deleteOrder(id) {
+        if(confirm("Permanently delete this order?")) db.ref('orders/' + id).remove();
     }
 </script>
+
 </body>
-</html>
+    </html>
+    
