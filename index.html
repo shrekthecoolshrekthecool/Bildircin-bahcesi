@@ -10,18 +10,14 @@
         :root { --egg-cream: #FDF5E6; --speckle-brown: #4E342E; --teal-accent: #4DB6AC; --white: #FFFFFF; }
         body { background-color: var(--egg-cream); font-family: 'Trebuchet MS', sans-serif; color: var(--speckle-brown); margin: 0; padding: 20px; padding-bottom: 120px; }
         
-        /* OVERLAYS */
         #lang-popup, #payment-popup, #banned-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(46, 34, 34, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         #payment-popup, #banned-screen { display: none; text-align: center; color: white; padding: 20px; }
         
-        /* UI COMPONENTS */
         .header-panel { display: flex; justify-content: space-between; align-items: center; background: var(--white); padding: 15px; border-radius: 12px; border: 3px solid var(--speckle-brown); margin-bottom: 20px; }
         .card { background: var(--white); padding: 20px; border-radius: 20px; width: 260px; text-align: center; border: 2px solid var(--speckle-brown); box-shadow: 8px 8px 0px var(--teal-accent); margin: 10px; position: relative; }
-        .badge { position: absolute; top: -10px; right: -10px; background: #d32f2f; color: white; padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
         .shop-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         .qty-input { width: 60px; padding: 8px; font-size: 18px; text-align: center; border-radius: 8px; border: 2px solid var(--speckle-brown); margin-bottom: 10px; }
 
-        /* CHAT */
         #chat-wrapper { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
         #chat-toggle-btn { width: 60px; height: 60px; background: var(--speckle-brown); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 24px; }
         #chat-container { width: 300px; height: 400px; background: white; border: 2px solid var(--speckle-brown); border-radius: 15px; display: none; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
@@ -30,7 +26,6 @@
         .msg-u { background: var(--teal-accent); color: white; align-self: flex-end; }
         .msg-o { background: #eee; color: var(--speckle-brown); align-self: flex-start; }
 
-        /* ADMIN */
         #admin-panel { margin: 30px auto; max-width: 900px; background: #fffcf0; padding: 25px; border-radius: 20px; border: 4px solid #d32f2f; display: none; }
         .admin-btn { background: #d32f2f; margin-top: 5px; }
         button { background: var(--speckle-brown); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -55,7 +50,7 @@
         <p id="ui-pay-desc">Lütfen gönderin:</p>
         <p><span id="order-summary"></span></p>
         <p><b id="ui-total-label">Toplam</b>: <b id="pay-amt"></b> TL</p>
-        <div style="background:#eee; padding:10px; border-radius:5px; word-break:break-all;"><b id="display-iban">Yükleniyor...</b></div>
+        <div style="background:#eee; padding:10px; border-radius:5px; word-break:break-all;"><b id="display-iban">...</b></div>
         <input type="text" id="pay-ref" placeholder="Ad Soyad"><br><br>
         <button id="ui-confirm-btn" onclick="confirmOrder()">Ödedim</button>
         <button id="ui-cancel-btn" style="background:gray" onclick="document.getElementById('payment-popup').style.display='none'">İptal</button>
@@ -69,18 +64,16 @@
 
 <div class="shop-container">
     <div class="card">
-        <div class="badge">0-5 GÜN / DAYS</div>
-        <h2 id="ui-egg-p-name">Premium Günlük</h2>
-        <div style="font-size:24px; margin-bottom: 10px;"><span id="p-egg-p">10</span> TL</div>
-        <input type="number" id="p-egg-qty" value="1" min="1" class="qty-input"><br>
-        <button class="ui-order-btn" onclick="startPay('Premium')">Sipariş</button>
+        <h2 id="ui-live-name">Canlı Bıldırcın</h2>
+        <div style="font-size:24px; margin-bottom: 10px;"><span id="live-p">135</span> TL</div>
+        <input type="number" id="live-qty" value="1" min="1" class="qty-input"><br>
+        <button class="ui-order-btn" onclick="startPay('Live')">Sipariş</button>
     </div>
     <div class="card">
-        <div class="badge" style="background:var(--teal-accent)">6-14 GÜN / DAYS</div>
-        <h2 id="ui-egg-s-name">Taze Standart</h2>
-        <div style="font-size:24px; margin-bottom: 10px;"><span id="s-egg-p">7</span> TL</div>
-        <input type="number" id="s-egg-qty" value="1" min="1" class="qty-input"><br>
-        <button class="ui-order-btn" onclick="startPay('Standard')">Sipariş</button>
+        <h2 id="ui-egg-name">Bıldırcın Yumurtası</h2>
+        <div style="font-size:24px; margin-bottom: 10px;"><span id="egg-p">7</span> TL</div>
+        <input type="number" id="egg-qty" value="1" min="1" class="qty-input"><br>
+        <button class="ui-order-btn" onclick="startPay('Egg')">Sipariş</button>
     </div>
 </div>
 
@@ -100,20 +93,18 @@
 </div>
 
 <div id="admin-panel">
-    <h2 style="color:red">OWNER CONTROL (Bıldırcın Yönetim)</h2>
+    <h2 style="color:red">OWNER CONTROL</h2>
     <div style="border-bottom:2px solid #ccc; padding-bottom:15px;">
-        <h3>1. Fiyat ve IBAN</h3>
+        <h3>Fiyat ve IBAN</h3>
         IBAN: <input type="text" id="set-iban"><br>
-        Premium (10 TL): <input type="number" id="set-p-p"><br>
-        Standard (7 TL): <input type="number" id="set-s-p"><br>
+        Bıldırcın (Bird): <input type="number" id="set-live-p"><br>
+        Yumurta (Egg): <input type="number" id="set-egg-p"><br>
         <button onclick="updateSettings()">Kaydet / Save</button>
     </div>
-    
-    <h3>2. Siparişler ve Ban Listesi</h3>
+    <h3>Siparişler</h3>
     <div id="adm-orders" style="background:white; padding:10px; border-radius:10px;"></div>
-    
     <div style="margin-top:20px;">
-        <h3>3. Manuel Ban</h3>
+        <h3>Manuel Ban</h3>
         <input type="text" id="manual-ban-id" placeholder="User ID">
         <button class="admin-btn" onclick="banUser(document.getElementById('manual-ban-id').value)">BANLA</button>
     </div>
@@ -128,12 +119,11 @@
     localStorage.setItem('qf_id', myID);
     document.getElementById('my-id-label').innerText = myID;
 
-    // BAN LISTENER
     db.ref('banned/'+myID).on('value', snap => { if(snap.val()) document.getElementById('banned-screen').style.display='flex'; });
 
     const translations = {
-        tr: { dir: "ltr", title: "Bıldırcın Çiftliği", premium: "Premium Günlük", standard: "Taze Standart", order: "Sipariş Ver", payTitle: "Ödeme", total: "Toplam", confirm: "Ödedim", chat: "Destek", ban: "ERİŞİM ENGELLENDİ" },
-        ar: { dir: "rtl", title: "مزرعة السمان", premium: "قسط يوميا", standard: "طازج قياسي", order: "اطلب الآن", payTitle: "تأكيد الدفع", total: "المجموع", confirm: "تم الدفع", chat: "الدعم", ban: "تم حظر الوصول" }
+        tr: { dir: "ltr", title: "Bıldırcın Çiftliği", live: "Canlı Bıldırcın", egg: "Bıldırcın Yumurtası", order: "Sipariş Ver", confirm: "Ödedim", chat: "Destek", ban: "ERİŞİM ENGELLENDİ" },
+        ar: { dir: "rtl", title: "مزرعة السمان", live: "سمان حي", egg: "بيض السمان", order: "اطلب الآن", confirm: "تم الدفع", chat: "الدعم", ban: "تم حظر الوصول" }
     };
 
     let currentLang = 'tr';
@@ -141,8 +131,8 @@
         currentLang = l; const t = translations[l];
         document.body.style.direction = t.dir;
         document.getElementById('ui-main-title').innerText = t.title;
-        document.getElementById('ui-egg-p-name').innerText = t.premium;
-        document.getElementById('ui-egg-s-name').innerText = t.standard;
+        document.getElementById('ui-live-name').innerText = t.live;
+        document.getElementById('ui-egg-name').innerText = t.egg;
         document.querySelectorAll('.ui-order-btn').forEach(b => b.innerText = t.order);
         document.getElementById('ui-confirm-btn').innerText = t.confirm;
         document.getElementById('ui-chat-title').innerText = t.chat;
@@ -150,12 +140,11 @@
         document.getElementById('lang-popup').style.display = 'none';
     }
 
-    // SETTINGS
     function updateSettings() {
         db.ref('settings').set({ 
             iban: document.getElementById('set-iban').value, 
-            pPrice: document.getElementById('set-p-p').value,
-            sPrice: document.getElementById('set-s-p').value 
+            livePrice: document.getElementById('set-live-p').value,
+            eggPrice: document.getElementById('set-egg-p').value 
         });
     }
 
@@ -163,35 +152,32 @@
         const s = snap.val();
         if(s) {
             document.getElementById('display-iban').innerText = s.iban || "";
-            document.getElementById('p-egg-p').innerText = s.pPrice || 10;
-            document.getElementById('s-egg-p').innerText = s.sPrice || 7;
+            document.getElementById('live-p').innerText = s.livePrice || 135;
+            document.getElementById('egg-p').innerText = s.eggPrice || 7;
             document.getElementById('set-iban').value = s.iban || "";
-            document.getElementById('set-p-p').value = s.pPrice || 10;
-            document.getElementById('set-s-p').value = s.sPrice || 7;
+            document.getElementById('set-live-p').value = s.livePrice || 135;
+            document.getElementById('set-egg-p').value = s.eggPrice || 7;
         }
     });
 
-    // ORDERING
     let activeType = "";
     function startPay(type) {
         activeType = type;
-        const qty = (type==='Premium') ? document.getElementById('p-egg-qty').value : document.getElementById('s-egg-qty').value;
-        const price = (type==='Premium') ? document.getElementById('p-egg-p').innerText : document.getElementById('s-egg-p').innerText;
-        document.getElementById('order-summary').innerText = qty + "x " + (type==='Premium'?translations[currentLang].premium:translations[currentLang].standard);
+        const qty = (type==='Live') ? document.getElementById('live-qty').value : document.getElementById('egg-qty').value;
+        const price = (type==='Live') ? document.getElementById('live-p').innerText : document.getElementById('egg-p').innerText;
+        document.getElementById('order-summary').innerText = qty + "x " + (type==='Live'?translations[currentLang].live:translations[currentLang].egg);
         document.getElementById('pay-amt').innerText = qty * price;
         document.getElementById('payment-popup').style.display = 'flex';
     }
 
     function confirmOrder() {
         const ref = document.getElementById('pay-ref').value;
-        const qty = (activeType==='Premium') ? document.getElementById('p-egg-qty').value : document.getElementById('s-egg-qty').value;
+        const qty = (activeType==='Live') ? document.getElementById('live-qty').value : document.getElementById('egg-qty').value;
         if(!ref) return alert("İsim yazın!");
         db.ref('orders').push({ user: myID, name: ref, type: activeType, qty: qty, time: Date.now() });
         document.getElementById('payment-popup').style.display = 'none';
-        alert("Sipariş alındı!");
     }
 
-    // CHAT
     function toggleChat() { const c = document.getElementById('chat-container'); c.style.display = (c.style.display==='flex')?'none':'flex'; }
     function sendChat() { const t = document.getElementById('chat-in').value; if(t) db.ref('chats/'+myID).push({ s:'u', t:t }); document.getElementById('chat-in').value=""; }
     db.ref('chats/'+myID).on('value', snap => {
@@ -201,15 +187,8 @@
         document.getElementById('chat-messages').scrollTop = 9999;
     });
 
-    // ADMIN FEATURES
     function checkAdmin(v) { if(v==="ThePassMustiGithub") document.getElementById('admin-panel').style.display='block'; }
-    
-    function banUser(uid) {
-        if(confirm("Banla: " + uid + "?")) {
-            db.ref('banned/' + uid).set(true);
-            alert("Kullanıcı yasaklandı.");
-        }
-    }
+    function banUser(uid) { if(confirm("Banla: " + uid + "?")) db.ref('banned/' + uid).set(true); }
 
     db.ref('orders').on('value', snap => {
         let h = ""; const o = snap.val();
@@ -217,7 +196,7 @@
             h += `<div style="border-bottom:1px solid #eee; padding:10px;">
                 <b>ID: ${o[id].user}</b> | ${o[id].name}<br>
                 ${o[id].qty}x ${o[id].type}<br>
-                <button onclick="db.ref('orders/${id}').remove()">SİL (Del)</button>
+                <button onclick="db.ref('orders/${id}').remove()">SİL</button>
                 <button class="admin-btn" onclick="banUser('${o[id].user}')">BANLA</button>
             </div>`;
         }
