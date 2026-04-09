@@ -1,37 +1,228 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quail Farm</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --egg-cream: #FDF5E6; --speckle-brown: #4E342E; --teal-accent: #4DB6AC; --white: #FFFFFF; }
+        body { background-color: var(--egg-cream); font-family: 'Trebuchet MS', sans-serif; color: var(--speckle-brown); margin: 0; padding: 20px; padding-bottom: 120px; }
+        
+        /* OVERLAYS */
+        #lang-popup, #payment-popup, #banned-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(46, 34, 34, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        #payment-popup, #banned-screen { display: none; text-align: center; color: white; padding: 20px; }
+        
+        /* UI COMPONENTS */
+        .header-panel { display: flex; justify-content: space-between; align-items: center; background: var(--white); padding: 15px; border-radius: 12px; border: 3px solid var(--speckle-brown); margin-bottom: 20px; }
+        .card { background: var(--white); padding: 20px; border-radius: 20px; width: 260px; text-align: center; border: 2px solid var(--speckle-brown); box-shadow: 8px 8px 0px var(--teal-accent); margin: 10px; position: relative; }
+        .badge { position: absolute; top: -10px; right: -10px; background: #d32f2f; color: white; padding: 5px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .shop-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .qty-input { width: 60px; padding: 8px; font-size: 18px; text-align: center; border-radius: 8px; border: 2px solid var(--speckle-brown); margin-bottom: 10px; }
+
+        /* CHAT */
+        #chat-wrapper { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
+        #chat-toggle-btn { width: 60px; height: 60px; background: var(--speckle-brown); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 24px; }
+        #chat-container { width: 300px; height: 400px; background: white; border: 2px solid var(--speckle-brown); border-radius: 15px; display: none; flex-direction: column; overflow: hidden; margin-bottom: 10px; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background: #fdfdfd; }
+        .msg { margin: 5px 0; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; }
+        .msg-u { background: var(--teal-accent); color: white; align-self: flex-end; }
+        .msg-o { background: #eee; color: var(--speckle-brown); align-self: flex-start; }
+
+        /* ADMIN */
+        #admin-panel { margin: 30px auto; max-width: 900px; background: #fffcf0; padding: 25px; border-radius: 20px; border: 4px solid #d32f2f; display: none; }
+        .admin-btn { background: #d32f2f; margin-top: 5px; }
+        button { background: var(--speckle-brown); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin: 5px; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Quail Farm</h1>
-    </header>
-    <section class="products">
-        <div class="product-card">
-            <h2>Premium Quail Eggs</h2>
-            <p>Price: $10</p>
-            <p>Label (Turkish): "Premium Tavuk Yumurtası" | Label (Arabic): "بيض دجاج ممتاز"
-            </p>
+
+<div id="banned-screen"><h1 id="ui-ban-title">ERİŞİM ENGELLENDİ</h1></div>
+
+<div id="lang-popup">
+    <h1 style="color:white">Quail Farm</h1>
+    <div style="display:flex; gap: 20px;">
+        <div onclick="applyLang('tr')" style="font-size: 50px; cursor: pointer;">🇹🇷</div>
+        <div onclick="applyLang('ar')" style="font-size: 50px; cursor: pointer;">🇸🇦</div>
+    </div>
+</div>
+
+<div id="payment-popup">
+    <div style="background: white; color: black; padding: 30px; border-radius: 20px; max-width: 350px;">
+        <h2 id="ui-pay-title">Ödeme</h2>
+        <p id="ui-pay-desc">Lütfen gönderin:</p>
+        <p><span id="order-summary"></span></p>
+        <p><b id="ui-total-label">Toplam</b>: <b id="pay-amt"></b> TL</p>
+        <div style="background:#eee; padding:10px; border-radius:5px; word-break:break-all;"><b id="display-iban">Yükleniyor...</b></div>
+        <input type="text" id="pay-ref" placeholder="Ad Soyad"><br><br>
+        <button id="ui-confirm-btn" onclick="confirmOrder()">Ödedim</button>
+        <button id="ui-cancel-btn" style="background:gray" onclick="document.getElementById('payment-popup').style.display='none'">İptal</button>
+    </div>
+</div>
+
+<div class="header-panel">
+    <div><h1 id="ui-main-title">Bıldırcın Çiftliği</h1><small>ID: <span id="my-id-label"></span></small></div>
+    <div><span id="ui-code-label">Panel:</span> <input type="password" oninput="checkAdmin(this.value)" style="width:60px;"></div>
+</div>
+
+<div class="shop-container">
+    <div class="card">
+        <div class="badge">0-5 GÜN / DAYS</div>
+        <h2 id="ui-egg-p-name">Premium Günlük</h2>
+        <div style="font-size:24px; margin-bottom: 10px;"><span id="p-egg-p">10</span> TL</div>
+        <input type="number" id="p-egg-qty" value="1" min="1" class="qty-input"><br>
+        <button class="ui-order-btn" onclick="startPay('Premium')">Sipariş</button>
+    </div>
+    <div class="card">
+        <div class="badge" style="background:var(--teal-accent)">6-14 GÜN / DAYS</div>
+        <h2 id="ui-egg-s-name">Taze Standart</h2>
+        <div style="font-size:24px; margin-bottom: 10px;"><span id="s-egg-p">7</span> TL</div>
+        <input type="number" id="s-egg-qty" value="1" min="1" class="qty-input"><br>
+        <button class="ui-order-btn" onclick="startPay('Standard')">Sipariş</button>
+    </div>
+</div>
+
+<div id="chat-wrapper">
+    <div id="chat-container">
+        <div style="background:var(--speckle-brown); color:white; padding:10px; display:flex; justify-content:space-between;">
+            <span id="ui-chat-title">Destek</span>
+            <span onclick="toggleChat()" style="cursor:pointer">×</span>
         </div>
-        <div class="product-card">
-            <h2>Standard Quail Eggs</h2>
-            <p>Price: $8</p>
-            <p>Label (Turkish): "Standart Tavuk Yumurtası" | Label (Arabic): "بيض دجاج عادي"
-            </p>
+        <div id="chat-messages"></div>
+        <div style="display:flex; padding:5px; border-top:1px solid #eee;">
+            <input type="text" id="chat-in" placeholder="..." style="flex:1">
+            <button onclick="sendChat()">></button>
         </div>
-        <div class="product-card">
-            <h2>Live Quails</h2>
-            <p>Price: $20 each</p>
-            <p>Label (Turkish): "Canlı Bıldırcınlar" | Label (Arabic): "طرائد حية"
-            </p>
-        </div>
-    </section>
-    <footer>
-        <!-- Footer removed as per request -->
-    </footer>
+    </div>
+    <div id="chat-toggle-btn" onclick="toggleChat()">💬</div>
+</div>
+
+<div id="admin-panel">
+    <h2 style="color:red">OWNER CONTROL (Bıldırcın Yönetim)</h2>
+    <div style="border-bottom:2px solid #ccc; padding-bottom:15px;">
+        <h3>1. Fiyat ve IBAN</h3>
+        IBAN: <input type="text" id="set-iban"><br>
+        Premium (10 TL): <input type="number" id="set-p-p"><br>
+        Standard (7 TL): <input type="number" id="set-s-p"><br>
+        <button onclick="updateSettings()">Kaydet / Save</button>
+    </div>
+    
+    <h3>2. Siparişler ve Ban Listesi</h3>
+    <div id="adm-orders" style="background:white; padding:10px; border-radius:10px;"></div>
+    
+    <div style="margin-top:20px;">
+        <h3>3. Manuel Ban</h3>
+        <input type="text" id="manual-ban-id" placeholder="User ID">
+        <button class="admin-btn" onclick="banUser(document.getElementById('manual-ban-id').value)">BANLA</button>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://realtime-numbers-ddc3e-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let myID = localStorage.getItem('qf_id') || (Math.floor(1000+Math.random()*9000)+"-"+Math.floor(1000+Math.random()*9000));
+    localStorage.setItem('qf_id', myID);
+    document.getElementById('my-id-label').innerText = myID;
+
+    // BAN LISTENER
+    db.ref('banned/'+myID).on('value', snap => { if(snap.val()) document.getElementById('banned-screen').style.display='flex'; });
+
+    const translations = {
+        tr: { dir: "ltr", title: "Bıldırcın Çiftliği", premium: "Premium Günlük", standard: "Taze Standart", order: "Sipariş Ver", payTitle: "Ödeme", total: "Toplam", confirm: "Ödedim", chat: "Destek", ban: "ERİŞİM ENGELLENDİ" },
+        ar: { dir: "rtl", title: "مزرعة السمان", premium: "قسط يوميا", standard: "طازج قياسي", order: "اطلب الآن", payTitle: "تأكيد الدفع", total: "المجموع", confirm: "تم الدفع", chat: "الدعم", ban: "تم حظر الوصول" }
+    };
+
+    let currentLang = 'tr';
+    function applyLang(l) {
+        currentLang = l; const t = translations[l];
+        document.body.style.direction = t.dir;
+        document.getElementById('ui-main-title').innerText = t.title;
+        document.getElementById('ui-egg-p-name').innerText = t.premium;
+        document.getElementById('ui-egg-s-name').innerText = t.standard;
+        document.querySelectorAll('.ui-order-btn').forEach(b => b.innerText = t.order);
+        document.getElementById('ui-confirm-btn').innerText = t.confirm;
+        document.getElementById('ui-chat-title').innerText = t.chat;
+        document.getElementById('ui-ban-title').innerText = t.ban;
+        document.getElementById('lang-popup').style.display = 'none';
+    }
+
+    // SETTINGS
+    function updateSettings() {
+        db.ref('settings').set({ 
+            iban: document.getElementById('set-iban').value, 
+            pPrice: document.getElementById('set-p-p').value,
+            sPrice: document.getElementById('set-s-p').value 
+        });
+    }
+
+    db.ref('settings').on('value', snap => {
+        const s = snap.val();
+        if(s) {
+            document.getElementById('display-iban').innerText = s.iban || "";
+            document.getElementById('p-egg-p').innerText = s.pPrice || 10;
+            document.getElementById('s-egg-p').innerText = s.sPrice || 7;
+            document.getElementById('set-iban').value = s.iban || "";
+            document.getElementById('set-p-p').value = s.pPrice || 10;
+            document.getElementById('set-s-p').value = s.sPrice || 7;
+        }
+    });
+
+    // ORDERING
+    let activeType = "";
+    function startPay(type) {
+        activeType = type;
+        const qty = (type==='Premium') ? document.getElementById('p-egg-qty').value : document.getElementById('s-egg-qty').value;
+        const price = (type==='Premium') ? document.getElementById('p-egg-p').innerText : document.getElementById('s-egg-p').innerText;
+        document.getElementById('order-summary').innerText = qty + "x " + (type==='Premium'?translations[currentLang].premium:translations[currentLang].standard);
+        document.getElementById('pay-amt').innerText = qty * price;
+        document.getElementById('payment-popup').style.display = 'flex';
+    }
+
+    function confirmOrder() {
+        const ref = document.getElementById('pay-ref').value;
+        const qty = (activeType==='Premium') ? document.getElementById('p-egg-qty').value : document.getElementById('s-egg-qty').value;
+        if(!ref) return alert("İsim yazın!");
+        db.ref('orders').push({ user: myID, name: ref, type: activeType, qty: qty, time: Date.now() });
+        document.getElementById('payment-popup').style.display = 'none';
+        alert("Sipariş alındı!");
+    }
+
+    // CHAT
+    function toggleChat() { const c = document.getElementById('chat-container'); c.style.display = (c.style.display==='flex')?'none':'flex'; }
+    function sendChat() { const t = document.getElementById('chat-in').value; if(t) db.ref('chats/'+myID).push({ s:'u', t:t }); document.getElementById('chat-in').value=""; }
+    db.ref('chats/'+myID).on('value', snap => {
+        const m = snap.val(); let h = "";
+        for(let id in m) h += `<div class="msg msg-${m[id].s}">${m[id].t}</div>`;
+        document.getElementById('chat-messages').innerHTML = h;
+        document.getElementById('chat-messages').scrollTop = 9999;
+    });
+
+    // ADMIN FEATURES
+    function checkAdmin(v) { if(v==="ThePassMustiGithub") document.getElementById('admin-panel').style.display='block'; }
+    
+    function banUser(uid) {
+        if(confirm("Banla: " + uid + "?")) {
+            db.ref('banned/' + uid).set(true);
+            alert("Kullanıcı yasaklandı.");
+        }
+    }
+
+    db.ref('orders').on('value', snap => {
+        let h = ""; const o = snap.val();
+        for(let id in o) {
+            h += `<div style="border-bottom:1px solid #eee; padding:10px;">
+                <b>ID: ${o[id].user}</b> | ${o[id].name}<br>
+                ${o[id].qty}x ${o[id].type}<br>
+                <button onclick="db.ref('orders/${id}').remove()">SİL (Del)</button>
+                <button class="admin-btn" onclick="banUser('${o[id].user}')">BANLA</button>
+            </div>`;
+        }
+        document.getElementById('adm-orders').innerHTML = h;
+    });
+</script>
 </body>
 </html>
